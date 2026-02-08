@@ -10,6 +10,7 @@ import from .components.IngredientItem { IngredientItem }
 
 sv import from main {
     AddTodo,
+    AddTodosFromText,
     ListTodos,
     ToggleTodo,
     DeleteTodo,

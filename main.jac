@@ -36,7 +36,19 @@ def categorize(title: str) -> Category by llm();
 """Generate a shopping list of ingredients needed for a described meal."""
 def generate_ingredients(meal_description: str) -> list[Ingredient] by llm();
 
+"""Split a natural-language input into a list of short todo titles."""
+def split_todos(natural_language: str) -> list[str] by llm();
+
 # --- Data Nodes ---
+node User {
+    has username: str,
+        password: str;
+}
+
+node TodoList {
+    has owner: str;
+}
+
 node Todo {
     has id: str,
         title: str,
@@ -65,6 +77,45 @@ walker:priv AddTodo {
             "completed": new_todo[0].completed,
             "category": new_todo[0].category
         };
+    }
+}
+
+# ADD FEATURE: Automatically identify natural language and split into multiple todos
+walker:
+    priv AddTodosFromText {
+    has title: str;
+
+    can create with `root entry {
+        tasks: list[str] = split_todos(self.title);
+
+        # Fallback: if LLM returns nothing, treat the whole text as a single todo
+        if len(tasks) == 0 {
+            tasks = [self.title];
+        }
+
+        created: list = [];
+
+        for t in tasks {
+            clean = t.strip();
+            if clean == "" {
+                continue;
+            }
+
+            # Reuse existing categorization + todo schema
+            category = str(categorize(clean)).split(".")[-1].lower();
+            new_todo = here ++> Todo(id=str(uuid4()), title=clean, category=category);
+
+            created.append(
+                {
+                    "id": new_todo[0].id,
+                    "title": new_todo[0].title,
+                    "completed": new_todo[0].completed,
+                    "category": new_todo[0].category
+                }
+            );
+        }
+
+        report created;
     }
 }
 

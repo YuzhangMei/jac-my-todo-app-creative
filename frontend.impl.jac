@@ -11,18 +11,21 @@ impl app.addTodo -> None {
     if not newTodoText.trim() {
         return;
     }
-    response = root spawn AddTodo(title=newTodoText);
-    newTodo = response.reports[0];
-    todos = todos.concat(
-        [
-            {
-                "id": newTodo.id,
-                "title": newTodo.title,
-                "completed": newTodo.completed,
-                "category": newTodo.category
-            }
-        ]
-    );
+    response = root spawn AddTodosFromText(title=newTodoText);
+    newTodos = response.reports[0];
+    for newTodo in newTodos {
+        todos = todos.concat(
+            [
+                {
+                    "id": newTodo.id,
+                    "title": newTodo.title,
+                    "completed": newTodo.completed,
+                    "category": newTodo.category
+                }
+            ]
+        );
+    }
+    ;
     newTodoText = "";
 }
 
